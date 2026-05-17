@@ -1,34 +1,38 @@
-# Personal Expense Tracker
+# 💎 Premium FinTech Analytics Dashboard
 
-A simple and efficient Python-based application designed to help users track their daily expenses, categorize spending, and store data persistently using JSON.
+Advanced Python-based web application designed for object-oriented financial tracking, structural budget management, and AI-driven analysis. Powered by Flask and customized with a premium dark space interface.
 
-## 🚀 Features
-- **Add Expenses:** Input amount, category, and date for each transaction.
-- **View History:** Display a formatted list of all recorded expenses.
-- **Data Persistence:** All records are automatically saved to a `expenses.json` file.
-- **Modular Structure:** Organized code into logical modules for better maintainability.
+---
 
-## 📁 Project Structure
-The project follows a clean directory structure:
-- `ExpenseTracker/` - Core package containing all logic.
-  - `main.py` - Entry point of the application.
-  - `manager.py` - Handles business logic and expense management.
-  - `storage.py` - Manages JSON file I/O operations.
-  - `expense.py` - Defines the Expense data model.
-  - `expenses.json` - Local database for storing records.
-- `.gitignore` - Prevents unnecessary files from being tracked.
-- `README.md` - Project documentation.
+## 🚀 Key Features (Негізгі мүмкіндіктер)
 
-## 📅 Weekly Progress
-This project was developed over a 3-week period to demonstrate incremental growth:
-- **Week 1:** Initial setup, project architecture design, and creation of the basic `Expense` model.
-- **Week 2:** Implementation of the `Storage` system to handle data saving and loading via JSON.
-- **Week 3:** Developed the `ExpenseManager` for core functionality and created a user-friendly CLI menu in `main.py`.
+* **⚡ Object-Oriented Ledger**: Every financial transaction is processed as an encapsulated `Expense` object, ensuring clean data architectural principles.
+* **💡 AI-Driven Financial Advisor**: An automated algorithmic module that reviews spending metrics in real-time and renders dynamic strategic financial advice.
+* **🎯 Target Savings System**: A dedicated data pipeline to create, monitor, and update personal financial milestones with precise milestone percentage rendering.
+* **🔍 Smart Flexible Search**: Advanced textual registry parsing that allows users to seamlessly scan records via dynamic query matches across categories and custom notes.
+* **📊 Automatic State Reset**: Implements an automatic volatile initialization mechanism that purges previous debug database history upon every clean application lifecycle start.
 
-## 🛠️ How to Run
-1. Ensure you have **Python 3.x** installed.
-2. Clone the repository or download the files.
-3. Open your terminal in the project root directory.
-4. Run the application:
-   ```bash
-   python ExpenseTracker/main.py
+---
+
+## 🛠️ Technology Stack (Технологиялық стек)
+
+* **Backend Core**: Python 3.13+ (Object-Oriented Architecture)
+* **Web Framework**: Flask (Micro-framework infrastructure)
+* **Database Engine**: JSON-based persistent flat-file serialization (`expenses.json`, `goals.json`)
+* **Frontend Interface**: Bootstrap 5 + Customized Flexbox Grid & Premium Glowing Neon Dark Theme
+
+---
+
+## 📁 Project Structure (Жобаның құрылымы)
+
+```text
+├── ExpenseTracker/
+│   ├── templates/
+│   │   └── index.html      # Premium UI Layout & Jinja2 Template
+│   ├── __init__.py
+│   ├── expense.py          # Encapsulated Expense Data Class (OOP)
+│   ├── manager.py          # Core Business Logic, Search, & AI Analytics
+│   ├── storage.py          # Hard-drive File I/O Serialization Engine
+│   └── main.py             # Flask Web Server & Endpoint Controller
+├── .gitignore
+└── README.md               # Documentation System
