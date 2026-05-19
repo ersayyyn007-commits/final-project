@@ -2,35 +2,72 @@ import json
 import os
 
 class Storage:
-    def __init__(self, data_file="ExpenseTracker/expenses.json", budget_file="ExpenseTracker/budget.json", goals_file="ExpenseTracker/goals.json"):
-        self.data_file = data_file
-        self.budget_file = budget_file
-        self.goals_file = goals_file
+    EXPENSES_FILE = "expenses.json"
+    BUDGET_FILE = "budget.json"
+    GOALS_FILE = "goals.json"
 
-    def load_data(self) -> list:
-        if not os.path.exists(self.data_file): return []
+    @classmethod
+    def load_expenses(cls):
+        if not os.path.exists(cls.EXPENSES_FILE):
+            return []
         try:
-            with open(self.data_file, 'r', encoding='utf-8') as file: return json.load(file)
-        except: return []
+            with open(cls.EXPENSES_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                # Егер ішіндегі дерек объект түрінде болса, оны Expense-ке айналдыру үшін
+                # main.py немесе manager.py өзі өңдейді, бірақ бізге тізім қайтару керек
+                from expense import Expense
+                expenses_list = []
+                for item in data:
+                    expenses_list.append(Expense(
+                        amount=item.get('amount'),
+                        category=item.get('category'),
+                        date=item.get('date'),
+                        comment=item.get('comment', '')
+                    ))
+                return expenses_list
+        except Exception:
+            return []
 
-    def save_data(self, data: list):
-        with open(self.data_file, 'w', encoding='utf-8') as file: json.dump(data, file, indent=4, ensure_ascii=False)
+    @classmethod
+    def save_expenses(cls, expenses):
+        data = []
+        for exp in expenses:
+            data.append({
+                "amount": exp.amount,
+                "category": exp.category,
+                "date": exp.date,
+                "comment": exp.comment
+            })
+        with open(cls.EXPENSES_FILE, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
 
-    def load_budget(self) -> float:
-        if not os.path.exists(self.budget_file): return 50000.0
+    @classmethod
+    def load_budget_limit(cls):
+        if not os.path.exists(cls.BUDGET_FILE):
+            return 0.0
         try:
-            with open(self.budget_file, 'r', encoding='utf-8') as file: return json.load(file).get("limit", 50000.0)
-        except: return 50000.0
+            with open(cls.BUDGET_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                return float(data.get('limit', 0.0))
+        except Exception:
+            return 0.0
 
-    def save_budget(self, limit: float):
-        with open(self.budget_file, 'w', encoding='utf-8') as file: json.dump({"limit": limit}, file, indent=4)
+    @classmethod
+    def save_budget_limit(cls, limit):
+        with open(cls.BUDGET_FILE, 'w', encoding='utf-8') as f:
+            json.dump({"limit": limit}, f, ensure_ascii=False, indent=4)
 
-    # ЖАҢА: Қаржылық мақсаттарды жүктеу және сақтау
-    def load_goals(self) -> list:
-        if not os.path.exists(self.goals_file): return []
+    @classmethod
+    def load_saving_goals(cls):
+        if not os.path.exists(cls.GOALS_FILE):
+            return []
         try:
-            with open(self.goals_file, 'r', encoding='utf-8') as file: return json.load(file)
-        except: return []
+            with open(cls.GOALS_FILE, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except Exception:
+            return []
 
-    def save_goals(self, goals: list):
-        with open(self.goals_file, 'w', encoding='utf-8') as file: json.dump(goals, file, indent=4, ensure_ascii=False)
+    @classmethod
+    def save_saving_goals(cls, goals):
+        with open(cls.GOALS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(goals, f, ensure_ascii=False, indent=4)
