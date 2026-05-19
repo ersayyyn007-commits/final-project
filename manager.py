@@ -1,89 +1,83 @@
-import functools
-from ExpenseTracker.expense import Expense
-from ExpenseTracker.storage import Storage
-
-def track_system(func):
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        print(f"[CORE LOG] Running internal operation: '{func.__name__}'")
-        return func(*args, **kwargs)
-    return wrapper
+import os
+from expense import Expense
+from storage import Storage
 
 class ExpenseManager:
     def __init__(self):
-        self.storage = Storage()
-        
-        # 🔥 ЖАҢА ФУНКЦИЯ: Сайт іске қосылған сайын ескі деректерді жою (Файлдарды тазалау)
-        self.clear_database_on_start()
-        
-        # Тазаланғаннан кейінгі жаңа бос деректерді жүктеу
-        self.expenses = self.storage.load_data()
-        self.budget_limit = self.storage.load_budget()
-        self.goals = self.storage.load_goals()
+        # Бастапқы деректерді жүктейміз немесе бос тізім жасаймыз
+        self.expenses = Storage.load_expenses()
+        self.budget_limit = Storage.load_budget_limit()
+        self.saving_goals = Storage.load_saving_goals()
 
-    # ЖАҢА ӘДІС: Файлдарды бос тізім етіп қайта жазады
-    def clear_database_on_start(self):
-        self.storage.save_data([])   # expenses.json тазартады
-        self.storage.save_goals([])  # goals.json тазартады
-        print("[SYSTEM INFO] Ескі транзакциялар мен мақсаттар автоматты түрде жойылды!")
-
-    @track_system
-    def add_expense(self, amount: float, category: str, date: str, comment: str):
+    def add_expense(self, amount, category, date, comment):
+        print("[CORE LOG] Running internal operation: 'add_expense'")
+        # Жаңа транзакция объектісін жасау
         new_expense = Expense(amount, category, date, comment)
-        self.expenses.append(new_expense.to_dict())
-        self.storage.save_data(self.expenses)
+        self.expenses.append(new_expense)
+        # Файлға сақтау
+        Storage.save_expenses(self.expenses)
+        return new_expense
 
-    @track_system
-    def set_new_budget(self, new_limit: float):
-        self.budget_limit = new_limit
-        self.storage.save_budget(new_limit)
+    def get_all_expenses(self):
+        return self.expenses
 
-    def smart_search(self, query: str) -> list:
-        query = query.lower()
-        return [exp for exp in self.expenses if query in exp['category'].lower() or query in exp['comment'].lower()]
+    def set_budget_limit(self, limit):
+        self.budget_limit = limit
+        Storage.save_budget_limit(limit)
 
-    def add_goal(self, title: str, target: float, saved: float):
-        goal = {"title": title.strip(), "target": float(target), "saved": float(saved)}
-        self.goals.append(goal)
-        self.storage.save_goals(self.goals)
+    def add_saving_goal(self, title, target, saved=0.0):
+        goal = {
+            "title": title,
+            "target": target,
+            "saved": saved,
+            "percentage": round((saved / target) * 100, 1) if target > 0 else 0.0
+        }
+        self.saving_goals.append(goal)
+        Storage.save_saving_goals(self.saving_goals)
 
-    @track_system
-    def get_advanced_analytics(self) -> dict:
-        total = sum(float(exp['amount']) for exp in self.expenses)
-        categories = [exp['category'] for exp in self.expenses]
-        unique_cats = set(categories)
+    def get_advanced_analytics(self):
+        print("[CORE LOG] Running internal operation: 'get_advanced_analytics'")
         
-        category_percentages = {}
-        if total > 0:
-            for cat in unique_cats:
-                cat_total = sum(float(exp['amount']) for exp in self.expenses if exp['category'] == cat)
-                category_percentages[cat] = round((cat_total / total) * 100, 1)
+        total_expenses = 0.0
+        total_income = 0.0
 
-        status = "Normal"
-        remaining = self.budget_limit - total
-        if total > self.budget_limit: status = "Danger"
+        # Шығыстар мен кірістерді бөлек есептейміз
+        for exp in self.expenses:
+            amt = float(exp.amount)
+            if amt < 0:
+                total_expenses += abs(amt)
+            else:
+                total_income += amt
 
-        advice = "Сіздің қаржылық жағдайыңыз тұрақты. Бақылауды осылай жалғастырыңыз! 👍"
-        if total > self.budget_limit:
-            advice = "🛑 Дабыл! Сіз белгіленген лимиттен асып кеттіңіз. Осы айда үнемдеу режимін қосуды ұсынамын!"
-        elif total > (self.budget_limit * 0.8):
-            advice = "⚠️ Сақ болыңыз! Шығындарыңыз лимиттің 80%-ына жетті. Бос шығындарды азайтыңыз."
-        elif len(self.expenses) > 10 and total < (self.budget_limit * 0.5):
-            advice = "🌟 Керемет нәтиже! Көптеген транзакция жасалса да, бюджеттің жартысынан азын жұмсадыңыз. Нағыз экономист!"
+        # Қалдық баланс (Кіріс + Шығыс, өйткені шығыс теріс таңбамен тұр)
+        remaining_balance = total_income - total_expenses
 
-        processed_goals = []
-        for g in self.goals:
-            pct = round((g['saved'] / g['target']) * 100, 1) if g['target'] > 0 else 0
-            processed_goals.append({**g, "percentage": min(pct, 100.0)})
+        # Ақылды кеңес (AI Insight) жүйесі
+        advice = "Сіздің қаржылық жүйеңіз тұрақты қалыпта. Транзакциялар сәтті өңделуде."
+        if self.budget_limit > 0:
+            usage_pct = (total_expenses / self.budget_limit) * 100
+            if usage_pct >= 100:
+                advice = f"🚨 Назар аударыңыз! Белгіленген лимиттен асып кеттіңіз ({round(usage_pct, 1)}%). Шығындарды шұғыл шектеңіз!"
+            elif usage_pct >= 80:
+                advice = f"⚠️ Ескерту: Бюджет лимитінің {round(usage_pct, 1)}% жұмсалды. Шығындарды бақылауда ұстаңыз."
+            else:
+                advice = f"✅ Тамаша! Бюджет лимитінің тек {round(usage_pct, 1)}% жұмсалды. Қаржылық жоспарыңыз өте жақсы."
+        elif total_expenses > 0 and total_income == 0:
+            advice = "💡 Кеңес: Қазір тек шығындар тіркеліп жатыр. Балансты теңгерімде ұстау үшін кірістерді (Credit) енгізуді ұмытпаңыз."
+
+        # Мақсаттардың пайызын қайта тексеру
+        updated_goals = []
+        for goal in self.saving_goals:
+            target = float(goal.get('target', 1))
+            saved = float(goal.get('saved', 0))
+            goal['percentage'] = round((saved / target) * 100, 1) if target > 0 else 0.0
+            updated_goals.append(goal)
 
         return {
-            "total": total,
-            "count": len(self.expenses),
-            "unique_categories": len(unique_cats),
-            "budget_limit": self.budget_limit,
-            "remaining": remaining,
-            "status": status,
-            "breakdown": category_percentages,
+            "total": round(total_expenses, 2),
+            "income": round(total_income, 2),
+            "remaining": round(remaining_balance, 2),
+            "budget_limit": round(self.budget_limit, 2),
             "advice": advice,
-            "goals": processed_goals
+            "goals": updated_goals
         }
