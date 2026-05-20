@@ -74,7 +74,7 @@ class ExpenseManager:
             updated_goals.append(goal)
 
         return {
-            "total": round(total_expenses, 2),
+            "total": round(total_expenses, 2) if total_expenses != 0 else 0.0,
             "income": round(total_income, 2),
             "remaining": round(remaining_balance, 2),
             "budget_limit": round(self.budget_limit, 2),
